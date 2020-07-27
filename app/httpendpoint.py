@@ -7,6 +7,6 @@ class HTTPEndpoint(Endpoint):
         self._session = requests.Session()
         
     def send(self):
-        print('\r{}'.format(self._data['id']), end='')
+        #print('\r{}'.format(self._data['id']), end='')
         data = {'event': self._data}
         self._session.post(self._endpoint, json=data)

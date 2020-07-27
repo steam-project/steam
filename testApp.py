@@ -1,6 +1,6 @@
 from app.filedevice import *
 from app.fileparser import *
-#from app.fileendpoint import *
+from app.fileendpoint import *
 from app.httpendpoint import *
 from steam import function
 
@@ -12,13 +12,14 @@ if __name__ == "__main__":
 
     fparser = FileParser()
     
-    #fendpoint = FileEndpoint()
-    #fendpoint.config('saida.txt')
-    hendpoint = HTTPEndpoint()
-    hendpoint.config('http://localhost:8080/wso2')
+    fendpoint = FileEndpoint()
+    fendpoint.config('saida.txt')
+    #hendpoint = HTTPEndpoint()
+    #hendpoint.config('http://localhost:8080/wso2')
     
     fdevice.setParser(fparser)
-    fdevice.setEndpoint(hendpoint)
+    fdevice.addEndpoint(fendpoint)
+    #fdevice.addEndpoint(hendpoint)
     fdevice.addFunction(function.Min(batchlen))
     fdevice.addFunction(function.Max(batchlen))
     fdevice.addFunction(function.Sum(batchlen))

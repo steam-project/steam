@@ -1,9 +1,9 @@
 class Endpoint:
     def config(self):
-        pass
+        raise NotImplementedError
         
     def setData(self, data):
         self._data = data
 
     def send(self):
-        pass
+        raise NotImplementedError
