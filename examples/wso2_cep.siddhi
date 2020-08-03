@@ -1,0 +1,19 @@
+@App:name('STEAM_IoT_Test_1')
+@App:description('HTTP Receive, count and alert')
+
+--@sink(type = 'log', 
+--	@map(type = 'passThrough'))
+@sink(type = 'http', publisher.url = "http://9d7395e0.ngrok.io/wso2", method = "POST", 
+	@map(type = 'json'))
+define stream AggregateStream (id long, countVal long, sumVal double, minVal double, maxVal double, avgVal double, stdDevVal double, outlier bool);
+
+@source(type = 'http', receiver.url = "http://0.0.0.0:8006/inputStream", basic.auth.enabled = "false", 
+	@map(type = 'json'))
+define stream InputStream (id long, value double, unit string, timestamp long);
+
+-- Aggregate functons over window length = 20
+@info(name='qryAggregate')
+from InputStream#window.length(20)
+select id, count() as countVal, sum(value) as sumVal, min(value) as minVal, max(value) as maxVal, avg(value) as avgVal, stdDev(value) as stdDevVal,  ifThenElse(stdDev(value) > 1.0, true, false) as outlier
+--group by id
+insert into AggregateStream;
