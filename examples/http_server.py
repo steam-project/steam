@@ -33,8 +33,8 @@ def save():
     print('\rFile saved and memory clear: {}'.format(dt))
     return "STEAM IoT<br>\nFile saved and memory clear: {}".format(dt)
 
-@app.route("/wso2", methods=['POST', 'GET'])
-def wso2():
+@app.route("/logdata", methods=['POST', 'GET'])
+def logData():
     global quant
     global strData
     quant += 1
@@ -44,7 +44,7 @@ def wso2():
         data = data.replace('  ', ' ')
     strData.append(data)
     print('\r{}'.format(quant), end='')
-    return 'OK'
+    return 'OK\n'
 
 if __name__ == "__main__":
-    serve(app, threads=128, listen='*:8080')
+    serve(app, threads=128, listen='*:38080')
