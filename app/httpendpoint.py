@@ -1,3 +1,4 @@
+import json
 import requests
 from steam.endpoint import *
 
@@ -9,4 +10,7 @@ class HTTPEndpoint(Endpoint):
     def send(self):
         #print('\r{}'.format(self._data['id']), end='')
         data = {'event': self._data}
-        self._session.post(self._endpoint, json=data)
+        # not minified json
+        #self._session.post(self._endpoint, json=data)
+        # minified json
+        self._session.post(self._endpoint, data=json.dumps(data, separators=(',', ':')))
