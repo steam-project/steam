@@ -1,5 +1,6 @@
 import time
 
+
 class Parser:
     def __init__(self):
         self._id = 0

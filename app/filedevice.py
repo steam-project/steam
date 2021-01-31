@@ -1,6 +1,7 @@
 import os
 from steam.device import *
 
+
 class FileDevice(Device):
     def config(self, filename):
         self._filename = filename
