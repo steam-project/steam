@@ -29,4 +29,4 @@ class Endpoint:
         return self._condition.evaluate()
 
     def send(self):
-        raise NotImplementedError
+        print(self._packet)

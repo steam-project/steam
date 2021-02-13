@@ -1,7 +1,8 @@
 from steam.enrich import *
 from steam.format import *
 from steam.condition import *
-
+from steam.parser import *
+from steam.endpoint import *
 
 class Device:
     def __init__(self, batchlen=0):
@@ -10,9 +11,8 @@ class Device:
         self._endpoints = []
         self._functions = []
         self._packets = []
-        self._values = []
         self._packet = {'id': 0, 'value': 0, 'unit': 'un', 'timestamp': 0}
-        self._enrich = Enrich(self._packet)
+        self._enrich = Enrich(self._packet, self._packets)
 
     def config(self):
         raise NotImplementedError
@@ -31,7 +31,7 @@ class Device:
         self._endpoints.append(endpoint)
 
     def addFunction(self, function):
-        function.config(self._packets, self._values)
+        function.config(self._packets)
         self._functions.append(function)
         
     def addData(self, data):
@@ -41,15 +41,19 @@ class Device:
         if self._batchlen > 0:
             while len(self._packets) >= self._batchlen:
                 self._packets.pop(0)
-                self._values.pop(0)
-                
+
         self._packets.append(data)
-        self._values.append(data['value'])
 
     def readData(self):
         raise NotImplementedError
         
     def run(self):
+        if self._parser is None:
+            self.setParser(Parser())
+
+        if len(self._endpoints) == 0:
+            self.addEndpoint(Endpoint())
+
         while True:
             valid, line = self.readData()
             if not valid:
@@ -64,7 +68,7 @@ class Device:
                     if valid:
                         self._enrich.setData(data)
                         self._enrich.enrich()
-                
+
                 for e in self._endpoints:
                     if e.evalCondition():
                         e.send()

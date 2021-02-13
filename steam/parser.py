@@ -1,12 +1,24 @@
 import time
 
 
+def to_number(s):
+    try:
+        return int(s)
+    except ValueError:
+        try:
+            return float(s)
+        except ValueError:
+            return s
+
 class Parser:
-    def __init__(self):
+    def __init__(self, unit='un', separator='\t', columns=[]):
         self._id = 0
         self._data = 0
         self._timestamp = 0
-        
+        self._unit = unit
+        self._columns = columns
+        self._separator = separator
+
     def setData(self, data):
         self._data = data
         
@@ -16,7 +28,21 @@ class Parser:
 
         parsed = {
             'id': self._id,
+            'timestamp': self._timestamp,
             'value': self._data,
-            'timestamp': self._timestamp
+            'unit': self._unit
         }
+
+        if len(self._columns) > 0:
+            values = [to_number(x) for x in self._data.split(self._separator)]
+            values = dict(zip(self._columns, values))
+
+            for attr in ['id', 'timestamp', 'unit']:
+                if attr in values:
+                    parsed.update({attr: values.get(attr)})
+
+            parsed['value'] = values
+        else:
+            parsed['value'] = to_number(self._data)
+
         return True, parsed

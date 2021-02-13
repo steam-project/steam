@@ -9,7 +9,6 @@ class FileParser(Parser):
         if valid:
             try:
                 parsed['unit'] = 'C'
-                parsed['value'] = float(self._data)
                 return True, parsed
             except:
                 return False, parsed

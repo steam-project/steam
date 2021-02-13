@@ -2,27 +2,32 @@ from pmdarima import auto_arima
 from statsmodels.tsa.arima_model import ARIMA
 import statistics
 import warnings
-
+import numpy
 
 # Base class for functions
 class Function:
-    def __init__(self, id, batchlen):
+    def __init__(self, id, batchlen, attribute):
         self._id = id
         self._count = 0
+        self._batchvalues = []
+        self._batchpackets = []
         self._batchlen = batchlen
+        self._attribute = attribute
 
-    def config(self, packets, values):
+    def config(self, packets):
         self._packets = packets
-        self._values = values
-        
+
     def calculate(self):
         first = 0
-        if self._batchlen > 0 and len(self._values) > self._batchlen:
-            first = len(self._values) - self._batchlen
+        if self._batchlen > 0 and len(self._batchpackets) >= self._batchlen:
+            first = -self._batchlen
         
         self._batchpackets = self._packets[first:]
-        self._batchvalues = self._values[first:]
-        
+
+        self._batchvalues = self._batchpackets.copy()
+        for attr in self._attribute.split('.'):
+            self._batchvalues = [ x[attr] for x in self._batchvalues if attr in x ]
+
         calculated = { self._id: self._batchvalues[-1] }
         self._count += 1
         return True, calculated
@@ -30,8 +35,8 @@ class Function:
 
 # Min function
 class Min(Function):
-    def __init__(self, id='min', batchlen=0):
-        super().__init__(id, batchlen)
+    def __init__(self, id='min', batchlen=0, attribute='value'):
+        super().__init__(id, batchlen, attribute)
         
     def calculate(self):
         try:
@@ -43,8 +48,8 @@ class Min(Function):
 
 # Max function
 class Max(Function):
-    def __init__(self, id='max', batchlen=0):
-        super().__init__(id, batchlen)
+    def __init__(self, id='max', batchlen=0, attribute='value'):
+        super().__init__(id, batchlen, attribute)
         
     def calculate(self):
         try:
@@ -56,8 +61,8 @@ class Max(Function):
 
 # Sum function
 class Sum(Function):
-    def __init__(self, id='sum', batchlen=0):
-        super().__init__(id, batchlen)
+    def __init__(self, id='sum', batchlen=0, attribute='value'):
+        super().__init__(id, batchlen, attribute)
         
     def calculate(self):
         try:
@@ -69,8 +74,8 @@ class Sum(Function):
 
 # Count function
 class Count(Function):
-    def __init__(self, id='count', batchlen=0):
-        super().__init__(id, batchlen)
+    def __init__(self, id='count', batchlen=0, attribute='value'):
+        super().__init__(id, batchlen, attribute)
         
     def calculate(self):
         try:
@@ -82,8 +87,8 @@ class Count(Function):
 
 # Mean function
 class Mean(Function):
-    def __init__(self, id='mean', batchlen=0):
-        super().__init__(id, batchlen)
+    def __init__(self, id='mean', batchlen=0, attribute='value'):
+        super().__init__(id, batchlen, attribute)
         
     def calculate(self):
         try:
@@ -93,10 +98,28 @@ class Mean(Function):
             return False, { self._id: self._batchvalues }
 
 
+# EWMA function
+class EWMA(Function):
+    def __init__(self, id='ewma', batchlen=0, attribute='value'):
+        super().__init__(id, batchlen, attribute)
+        
+    def calculate(self):
+        try:
+            i = 1
+            ewma = 0
+            super().calculate()
+
+            for x in self._batchvalues[::-1]:
+                ewma += x / (2 ** i)
+                i += 1
+            return True, { self._id: ewma }
+        except:
+            return False, { self._id: self._batchvalues }
+
 # StDev function
 class StDev(Function):
-    def __init__(self, id='stdev', batchlen=0):
-        super().__init__(id, batchlen)
+    def __init__(self, id='stdev', batchlen=0, attribute='value'):
+        super().__init__(id, batchlen, attribute)
         
     def calculate(self):
         super().calculate()
@@ -109,8 +132,24 @@ class StDev(Function):
             return True, { self._id: 0.0 }
 
 
+# Slope function
+class Slope(Function):
+    def __init__(self, id='slope', batchlen=0, attribute='value'):
+        super().__init__(id, batchlen, attribute)
+
+    def calculate(self):
+        super().calculate()
+        if self._count >= self._batchlen:
+            try:
+                return True, {self._id: numpy.polyfit(range(1, self._batchlen + 1), self._batchvalues, 1)[0]}
+            except:
+                return False, {self._id: self._batchvalues}
+        else:
+            return True, {self._id: 0.0}
+
 class AutoArimaFunction(Function):
-    def __init__(self, id='auto_arima', batchlen=0, periods=1, start_p=0, d=0, start_q=0, max_p=5, max_d=5, max_q=5, start_P=0, D=0, start_Q=0, max_P=5, max_D=5, max_Q=5, max_order=5, m=1, seasonal=True, stationary=False):
+    def __init__(self, id='auto_arima', batchlen=0, attribute='value', periods=1, start_p=0, d=0, start_q=0, max_p=5, max_d=5, max_q=5, start_P=0, D=0, start_Q=0, max_P=5, max_D=5, max_Q=5, max_order=5, m=1, seasonal=True, stationary=False):
+        super().__init__(id, batchlen, attribute)
         self._periods = periods
         self._start_p = start_p
         self._d = d
@@ -129,7 +168,6 @@ class AutoArimaFunction(Function):
         self._seasonal = seasonal
         self._stationary = stationary
         self._stepwise_model = None
-        super().__init__(id, batchlen)
 
     def set_auto_arima_model(self):
         self._stepwise_model = auto_arima(self._batchvalues, start_p = self._start_p, d = self._d, start_q = self._start_q, max_p = self._max_p, max_d = self._max_d, max_q = self._max_q, start_P = self._start_P, D = self._D, start_Q = self._start_Q, max_P = self._max_P, max_D = self._max_D, max_Q = self._max_Q, max_order = self._max_order, m = self._m, seasonal = self._seasonal, stationary = self._stationary, trace=False,error_action = 'ignore', suppress_warnings = True, stepwise = True)
@@ -173,14 +211,14 @@ class AutoArimaFunction(Function):
 
 
 class ArimaFunction(Function):
-    def __init__(self, id='arima', batchlen=0, periods=1, p=0, d=0, q=0):
+    def __init__(self, id='arima', batchlen=0, attribute='value', periods=1, p=0, d=0, q=0):
+        super().__init__(id, batchlen, attribute)
         self._periods = periods
         self._p = p
         self._d = d
         self._q = q
         self._model = None
         warnings.filterwarnings("ignore")
-        super().__init__(id, batchlen)
 
     def set_arima_model(self):
         self._model = ARIMA(self._batchvalues, order=(self._p, self._d, self._q)).fit(disp=0)
