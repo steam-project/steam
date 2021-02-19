@@ -34,7 +34,7 @@ class Parser:
         }
 
         if len(self._columns) > 0:
-            values = [to_number(x) for x in self._data.split(self._separator)]
+            values = [ to_number(x) for x in self._data.split(self._separator) ]
             values = dict(zip(self._columns, values))
 
             for attr in ['id', 'timestamp', 'unit']:

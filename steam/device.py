@@ -14,9 +14,6 @@ class Device:
         self._packet = {'id': 0, 'value': 0, 'unit': 'un', 'timestamp': 0}
         self._enrich = Enrich(self._packet, self._packets)
 
-    def config(self):
-        raise NotImplementedError
-        
     def setParser(self, parser):
         self._parser = parser
         

@@ -139,7 +139,8 @@ class Slope(Function):
 
     def calculate(self):
         super().calculate()
-        if self._count >= self._batchlen:
+
+        if len(self._batchvalues) > 1 and self._count >= self._batchlen:
             try:
                 return True, {self._id: numpy.polyfit(range(1, self._batchlen + 1), self._batchvalues, 1)[0]}
             except:

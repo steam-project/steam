@@ -3,7 +3,8 @@ from steam.device import *
 
 
 class FileDevice(Device):
-    def config(self, filename):
+    def __init__(self, filename, batchlen=0):
+        super().__init__(batchlen)
         self._filename = filename
         self._fin = open(filename)
         self._filesize = os.fstat(self._fin.fileno()).st_size
