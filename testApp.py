@@ -8,39 +8,45 @@ from steam import function
 
 
 if __name__ == "__main__":
+    # Variables initialization
     batchlen = 50
     endpoint = None
     dataformat = None
     sendcondition = None
 
-    device = FileDevice(batchlen)
-    device.config('sensors.txt')
+    # Read raw data from file
+    device = FileDevice(filename='sensors.txt', batchlen=batchlen)
 
-    endpoint = FileEndpoint()
-    endpoint.config('saida.txt')
+    # Raw data parser
+    device.setParser(Parser(unit='C', separator='\t', columns=['s1', 's2', 's3']))
 
-    #endpoint = HTTPEndpoint()
-    #endpoint.config('http://localhost:38080/logdata')
-    #endpoint.config('http://192.168.9.61:8006/inputStreamSave')
+    # Save processed data to file
+    endpoint = FileEndpoint(filename='saida.txt')
 
-    #dataformat = JSONFormat()
+    # Send processed data to HTTP service
+    #endpoint = HTTPEndpoint(url='http://localhost:38080/logdata')
+    #endpoint = HTTPEndpoint(url='http://192.168.9.61:8006/inputStreamSave')
+
+    # Format of processed data
+    #dataformat = JSONFormat(['id', 'value.s1', 'value.s2', 'value.s3', 'mean', 'slope', 'max_mean', 'max_slope'])
     #dataformat = CSVFormat()
-    #dataformat.config(header=False)
+    dataformat = TSVFormat(['id', 'value.s1', 'value.s2', 'value.s3', 'mean', 'slope', 'max_mean', 'max_slope'])
 
-    #sendcondition = ThresholdCondition()
-    #sendcondition.config(attribute='count', lower=20)
+    # Condition for sending processed data
+    #sendcondition = ThresholdCondition(columns=['value.s1', 'value.s2'], upper=[-20, -20])
 
-    if endpoint:
-        device.addEndpoint(endpoint)
-
+    # Configure application - begin - do not change order
     if dataformat:
         endpoint.setFormat(dataformat)
 
     if sendcondition:
         endpoint.setCondition(sendcondition)
 
-    device.setParser(Parser(unit='C', separator='\t', columns=['id', 'timestamp', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9']))
+    if endpoint:
+        device.addEndpoint(endpoint)
+    # Configure application - end - do not change order
 
+    # Analytical function list
     #device.addFunction(function.Min(batchlen=10))
     #device.addFunction(function.Max(batchlen=3))
     #device.addFunction(function.Sum(batchlen=batchlen))
@@ -53,4 +59,6 @@ if __name__ == "__main__":
     #device.addFunction(function.EWMA(batchlen=10))
     #device.addFunction(function.AutoArimaFunction(batchlen=50, periods=5))
     #device.addFunction(function.ArimaFunction(batchlen=20, periods=5, p=2, d=0, q=0))
+
+    # Run the application
     device.run()
