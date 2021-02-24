@@ -6,6 +6,7 @@ from steam.format import *
 from steam.condition import *
 from steam import function
 
+# TODO: Input and output security layers
 
 if __name__ == "__main__":
     # Variables initialization
