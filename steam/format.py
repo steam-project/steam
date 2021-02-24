@@ -28,13 +28,10 @@ class Format:
 
 
 class CSVFormat(Format):
-    def __init__(self, columns=[]):
+    def __init__(self, columns=[], header=True):
         super().__init__(columns)
-        self._header = True
-        
-    def config(self, header):
         self._header = header
-       
+        
     def format(self):
         super().format()
         out = ''
@@ -51,13 +48,10 @@ class CSVFormat(Format):
 
 
 class TSVFormat(Format):
-    def __init__(self, columns=[]):
+    def __init__(self, columns=[], header=True):
         super().__init__(columns)
-        self._header = True
-        
-    def config(self, header):
         self._header = header
-
+        
     def format(self):
         super().format()
         out = ''

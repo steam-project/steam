@@ -9,6 +9,8 @@ class Endpoint:
 
     def setPacket(self, packet):
         self._packet = packet
+        self._format.setPacket(self._packet)
+        self._condition.setPacket(self._packet)
 
     def hasFormat(self):
         return bool(self._format)

@@ -1,14 +1,7 @@
 import time
 
+from steam.utils import *
 
-def to_number(s):
-    try:
-        return int(s)
-    except ValueError:
-        try:
-            return float(s)
-        except ValueError:
-            return s
 
 class Parser:
     def __init__(self, unit='un', separator='\t', columns=[]):

@@ -14,7 +14,7 @@ class FileDevice(Device):
             self._fin.close()
             return False, None
         else:
-            return True, self._fin.readline().strip()
+            return True, self._fin.readline().replace('\r', '').replace('\n', '')
 
     def run(self):
         print('Processing', self._filename)

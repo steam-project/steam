@@ -1,10 +1,9 @@
-class Condition:
-    def __init__(self):
-        self._packet = None
-        self._attribute = None
+from steam.utils import *
 
-    def config(self, attribute='value'):
-        self._attribute = attribute
+class Condition:
+    def __init__(self, columns=[]):
+        self._packet = None
+        self._columns = columns
 
     def setPacket(self, packet):
         self._packet = packet
@@ -13,26 +12,38 @@ class Condition:
         return True
 
 
+class MissingValueCondition(Condition):
+    def __init__(self, columns=[]):
+        super().__init__(columns)
+
+    def evaluate(self):
+        for col in self._columns:
+            if get_value(self._packet, col) in ['', None]:
+                return True
+
+        return False
+
+
 class ThresholdCondition(Condition):
-    def config(self, attribute='value', lower=None, upper=None):
-        super().config(attribute)
+    def __init__(self, columns=['value'], lower=[], upper=[]):
+        super().__init__(columns)
         self._lower = lower
         self._upper = upper
 
     def evaluate(self):
-        result = False
+        for i in range(len(self._columns)):
+            value = get_value(self._packet, self._columns[i])
 
-        if self._attribute in self._packet:
-            value = self._packet[self._attribute]
+            if value:
+                lower = self._lower[i] if i < len(self._lower) else None
+                if lower:
+                    if value < lower:
+                        return True
 
-            if not result:
-                if self._lower:
-                    result = value < self._lower
-                    #print(value, '<', self._lower, result)
-      
-            if not result:
-                if self._upper:
-                    result = value > self._upper
-                    #print(value, '>', self._upper, result)
-        
-        return result
+            if value:
+                upper = self._upper[i] if i < len(self._upper) else None
+                if upper:
+                    if value > upper:
+                        return True
+
+        return False

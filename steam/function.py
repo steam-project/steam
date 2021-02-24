@@ -26,11 +26,11 @@ class Function:
 
         self._batchvalues = self._batchpackets.copy()
         for attr in self._attribute.split('.'):
-            self._batchvalues = [ x[attr] for x in self._batchvalues if attr in x ]
+            self._batchvalues = [x[attr] for x in self._batchvalues if attr in x]
 
-        calculated = { self._id: self._batchvalues[-1] }
+        calculated = {self._id: self._batchvalues[-1]}
         self._count += 1
-        return True, calculated
+        return calculated
 
 
 # Min function
@@ -41,9 +41,9 @@ class Min(Function):
     def calculate(self):
         try:
             super().calculate()
-            return True, { self._id: min(self._batchvalues) }
+            return {self._id: min(self._batchvalues)}
         except:
-            return False, { self._id: self._batchvalues }
+            return {self._id: ''}
 
 
 # Max function
@@ -54,9 +54,9 @@ class Max(Function):
     def calculate(self):
         try:
             super().calculate()
-            return True, { self._id: max(self._batchvalues) }
+            return {self._id: max(self._batchvalues)}
         except:
-            return False, { self._id: self._batchvalues }
+            return {self._id: ''}
 
 
 # Sum function
@@ -67,9 +67,9 @@ class Sum(Function):
     def calculate(self):
         try:
             super().calculate()
-            return True, { self._id: sum(self._batchvalues) }
+            return {self._id: sum(self._batchvalues)}
         except:
-            return False, { self._id: self._batchvalues }
+            return {self._id: ''}
 
 
 # Count function
@@ -80,9 +80,9 @@ class Count(Function):
     def calculate(self):
         try:
             super().calculate()
-            return True, { self._id: len(self._batchvalues) }
+            return {self._id: len(self._batchvalues)}
         except:
-            return False, { self._id: self._batchvalues }
+            return {self._id: ''}
 
 
 # Mean function
@@ -93,9 +93,9 @@ class Mean(Function):
     def calculate(self):
         try:
             super().calculate()
-            return True, { self._id: statistics.mean(self._batchvalues) }
+            return {self._id: statistics.mean(self._batchvalues)}
         except:
-            return False, { self._id: self._batchvalues }
+            return {self._id: ''}
 
 
 # EWMA function
@@ -112,9 +112,9 @@ class EWMA(Function):
             for x in self._batchvalues[::-1]:
                 ewma += x / (2 ** i)
                 i += 1
-            return True, { self._id: ewma }
+            return {self._id: ewma}
         except:
-            return False, { self._id: self._batchvalues }
+            return {self._id: ''}
 
 # StDev function
 class StDev(Function):
@@ -125,11 +125,11 @@ class StDev(Function):
         super().calculate()
         if len(self._batchvalues) > 1:
             try:
-                return True, { self._id: statistics.pstdev(self._batchvalues) }
+                return {self._id: statistics.pstdev(self._batchvalues)}
             except:
-                return False, { self._id: self._batchvalues }
+                return {self._id: ''}
         else:
-            return True, { self._id: 0.0 }
+            return {self._id: ''}
 
 
 # Slope function
@@ -142,11 +142,11 @@ class Slope(Function):
 
         if len(self._batchvalues) > 1 and self._count >= self._batchlen:
             try:
-                return True, {self._id: numpy.polyfit(range(1, self._batchlen + 1), self._batchvalues, 1)[0]}
+                return {self._id: numpy.polyfit(range(1, self._batchlen + 1), self._batchvalues, 1)[0]}
             except:
-                return False, {self._id: self._batchvalues}
+                return {self._id: ''}
         else:
-            return True, {self._id: 0.0}
+            return {self._id: ''}
 
 class AutoArimaFunction(Function):
     def __init__(self, id='auto_arima', batchlen=0, attribute='value', periods=1, start_p=0, d=0, start_q=0, max_p=5, max_d=5, max_q=5, start_P=0, D=0, start_Q=0, max_P=5, max_D=5, max_Q=5, max_order=5, m=1, seasonal=True, stationary=False):
@@ -204,11 +204,11 @@ class AutoArimaFunction(Function):
                         self._stepwise_model.fit(self._batchvalues)
 
             if self._stepwise_model:
-                return True, self.predict_auto_arima()
+                return self.predict_auto_arima()
             else:
-                return True, dict(zip([self._id + '_' + str(x + 1) for x in range(self._periods)], [''] * self._periods))
+                return dict(zip([self._id + '_' + str(x + 1) for x in range(self._periods)], [''] * self._periods))
         except:
-            return False, { self._id: self._batchvalues }
+            return {self._id: ''}
 
 
 class ArimaFunction(Function):
@@ -244,8 +244,8 @@ class ArimaFunction(Function):
                     self.update_arima_model()
 
             if self._model != None:
-                return True, self.predict_arima()
+                return self.predict_arima()
             else:
-                return True, dict(zip([self._id + '_' + str(x + 1) for x in range(self._periods)], [''] * self._periods))
+                return dict(zip([self._id + '_' + str(x + 1) for x in range(self._periods)], [''] * self._periods))
         except:
-            return False, { self._id: self._batchvalues }
+            return {self._id: ''}

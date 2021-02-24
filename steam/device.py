@@ -4,6 +4,7 @@ from steam.condition import *
 from steam.parser import *
 from steam.endpoint import *
 
+
 class Device:
     def __init__(self, batchlen=0):
         self._batchlen = batchlen
@@ -18,13 +19,12 @@ class Device:
         self._parser = parser
         
     def addEndpoint(self, endpoint):
-        endpoint.setPacket(self._packet)
         if not endpoint.hasFormat():
             endpoint.setFormat(TSVFormat())
         if not endpoint.hasCondition():
             endpoint.setCondition(Condition())
-        endpoint._format.setPacket(self._packet)
-        endpoint._condition.setPacket(self._packet)
+
+        endpoint.setPacket(self._packet)
         self._endpoints.append(endpoint)
 
     def addFunction(self, function):
@@ -61,10 +61,9 @@ class Device:
             if valid:
                 self.addData(parsed)
                 for f in self._functions:
-                    valid, data = f.calculate()
-                    if valid:
-                        self._enrich.setData(data)
-                        self._enrich.enrich()
+                    data = f.calculate()
+                    self._enrich.setData(data)
+                    self._enrich.enrich()
 
                 for e in self._endpoints:
                     if e.evalCondition():

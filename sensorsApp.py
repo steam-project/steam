@@ -6,6 +6,16 @@ from steam.format import *
 from steam.condition import *
 from steam import function
 
+#TODO: Generic Device class
+#TODO: Data Input class
+
+'''
+OK - Medição faltante
+- Medição fora da faixa média +/- 1, 2 e 3 sigma
+- Desacordo nas medições dos sensores
+OK - Qualquer sensor acima de -20°C
+- Predição de qualquer sensor acima de -20°C
+'''
 
 if __name__ == "__main__":
     batchlen = 50
@@ -13,10 +23,10 @@ if __name__ == "__main__":
     dataformat = None
     sendcondition = None
 
-    device = FileDevice('sensors.txt', batchlen)
+    device = FileDevice('threshold_sensors.txt', batchlen)
     device.setParser(Parser(unit='C', separator='\t', columns=['s1', 's2', 's3']))
 
-    endpoint = FileEndpoint('log.txt')
+    endpoint = FileEndpoint('threshold_log.txt')
 
     #endpoint = HTTPEndpoint()
     #endpoint.config('http://localhost:38080/logdata')
@@ -27,8 +37,8 @@ if __name__ == "__main__":
     dataformat = TSVFormat(['id', 'value.s1', 'value.s2', 'value.s3', 's1_slope', 's2_slope', 's3_slope'])
     #dataformat.config(header=False)
 
-    #sendcondition = ThresholdCondition()
-    #sendcondition.config(attribute='count', lower=20)
+    #sendcondition = MissingValueCondition(columns=['value.s1', 'value.s2', 'value.s3'])
+    sendcondition = ThresholdCondition(columns=['value.s1', 'value.s2'], upper=[-20, -20])
 
     if dataformat:
         endpoint.setFormat(dataformat)
@@ -48,9 +58,9 @@ if __name__ == "__main__":
     #device.addFunction(function.Mean(id='s2_mean', batchlen=2, attribute='value.s2'))
     #device.addFunction(function.Mean(id='s3_mean', batchlen=2, attribute='value.s3'))
 
-    device.addFunction(function.Slope(id='s1_slope', batchlen=3, attribute='value.s1'))
-    device.addFunction(function.Slope(id='s2_slope', batchlen=3, attribute='value.s2'))
-    device.addFunction(function.Slope(id='s3_slope', batchlen=3, attribute='value.s3'))
+    device.addFunction(function.Slope(id='s1_slope', batchlen=2, attribute='value.s1'))
+    device.addFunction(function.Slope(id='s2_slope', batchlen=2, attribute='value.s2'))
+    device.addFunction(function.Slope(id='s3_slope', batchlen=2, attribute='value.s3'))
 
     #device.addFunction(function.Slope(id='s1_slope', batchlen=2, attribute='s1_mean'))
     #device.addFunction(function.Slope(id='s2_slope', batchlen=2, attribute='s2_mean'))
