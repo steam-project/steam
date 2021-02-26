@@ -75,6 +75,7 @@ class JSONFormat(Format):
         super().format()
         try:
             out = json.dumps(self._packet, separators=(',', ':'))
+            out = out.replace("''", 'null').replace('""', 'null')
             return True, out
         except:
             return False, self._packet
