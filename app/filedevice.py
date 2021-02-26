@@ -10,11 +10,15 @@ class FileDevice(Device):
         self._filesize = os.fstat(self._fin.fileno()).st_size
 
     def readData(self):
-        if self._fin.tell() == self._filesize:
-            self._fin.close()
-            return False, None
-        else:
-            return True, self._fin.readline().replace('\r', '').replace('\n', '')
+        while True:
+            if self._fin.tell() == self._filesize:
+                self._fin.close()
+                return False, None
+            else:
+                line = self._fin.readline().replace('\r', '').replace('\n', '')
+                if len(line.strip()):
+                    if line[0] != '#':
+                        return True, line
 
     def run(self):
         print('Processing', self._filename)
