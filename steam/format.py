@@ -1,4 +1,5 @@
 import json
+from steam.utils import *
 
 
 class Format:
@@ -12,20 +13,29 @@ class Format:
 
     def format(self):
         if len(self._columns) > 0:
-            nested_cols = [ x for x in self._columns if '.' in x ]
-            simple_cols = [ x for x in self._columns if not '.' in x ]
-
-            self._packet = { key: value for key, value in self._source_packet.items() if key in simple_cols }
-            for x in nested_cols:
-                key1, key2 = x.split('.')
-                if key1 in self._source_packet:
-                    if key2 in self._source_packet[key1]:
-                        self._packet.update({key2: self._source_packet[key1][key2]})
+            self._packet = {}
+            for col in self._columns:
+                self._packet.update({col.split('.')[-1]: get_value(self._source_packet, col)})
         else:
             self._packet = self._source_packet
 
         return True, self._packet
 
+
+class MessageFormat(Format):
+    def __init__(self, message='', columns=[]):
+        super().__init__(columns)
+        self._message = message
+        
+    def format(self):
+        super().format()
+        out = ''
+        
+        try:
+            out = self._message % self._packet
+            return True, out
+        except:
+            return False, self._packet
 
 class CSVFormat(Format):
     def __init__(self, columns=[], header=True):
