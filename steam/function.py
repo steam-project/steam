@@ -97,6 +97,18 @@ class Mean(Function):
         except:
             return {self._id: ''}
 
+# Median function
+class Median(Function):
+    def __init__(self, id='median', batchlen=0, attribute='value'):
+        super().__init__(id, batchlen, attribute)
+        
+    def calculate(self):
+        try:
+            super().calculate()
+            return {self._id: statistics.median(self._batchvalues)}
+        except:
+            return {self._id: ''}
+
 
 # EWMA function
 class EWMA(Function):
