@@ -1,3 +1,4 @@
+from steam.utils import *
 from pmdarima import auto_arima
 from statsmodels.tsa.arima_model import ARIMA
 import statistics
@@ -26,12 +27,32 @@ class Function:
 
         self._batchvalues = self._batchpackets.copy()
         for attr in self._attribute.split('.'):
-            self._batchvalues = [x[attr] for x in self._batchvalues if attr in x]
+            self._batchvalues = [ x[attr] for x in self._batchvalues if attr in x ]
 
         calculated = {self._id: self._batchvalues[-1]}
         self._count += 1
         return calculated
 
+
+# Equation function
+class Equation(Function):
+    def __init__(self, id='equation', equation='value'):
+        self._equation = equation
+        super().__init__(id, 1, 'value')
+        
+    def calculate(self):
+        try:
+            packet = self._packets[-1]
+            equation = self._equation
+            tokens = equation.replace('(', ' ').replace(')', ' ').split()
+            var_names = [ x for x in tokens if x in packet ]
+            var_names.extend([ x for x in tokens if '.' in x ])
+            for var_name in var_names:
+                equation = equation.replace(var_name, str(get_value(packet, var_name)))
+
+            return {self._id: eval(equation)}
+        except:
+            return {self._id: equation}
 
 # Min function
 class Min(Function):
