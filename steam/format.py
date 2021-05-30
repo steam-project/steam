@@ -1,3 +1,4 @@
+import re
 import json
 from steam.utils import *
 
@@ -23,7 +24,10 @@ class Format:
 
 
 class MessageFormat(Format):
-    def __init__(self, message='', columns=[]):
+    def __init__(self, message):
+        # Extract column names from message
+        columns = re.findall('\{[^\{]+\}', message)
+        columns = [c.replace('{', '').replace('}', '') for c in columns]
         super().__init__(columns)
         self._message = message
         
@@ -32,7 +36,8 @@ class MessageFormat(Format):
         out = ''
         
         try:
-            out = self._message % self._packet
+            message = self._message.replace('{value.', '{')
+            out = message.format(**self._packet)
             return True, out
         except:
             return False, self._packet
