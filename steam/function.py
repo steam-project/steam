@@ -7,16 +7,23 @@ import numpy
 
 # Base class for functions
 class Function:
-    def __init__(self, id, batchlen, attribute):
+    def __init__(self, id, batchlen, attribute, format=None):
         self._id = id
         self._count = 0
         self._batchvalues = []
         self._batchpackets = []
         self._batchlen = batchlen
         self._attribute = attribute
+        self._format = format
 
     def config(self, packets):
         self._packets = packets
+
+    def format(self, value):
+        if self._format:
+            return self._format.format(value)
+        else:
+            return value
 
     def calculate(self):
         first = 0
@@ -36,9 +43,9 @@ class Function:
 
 # Equation function
 class Equation(Function):
-    def __init__(self, id='equation', equation='value'):
+    def __init__(self, id='equation', equation='value', format=None):
         self._equation = equation
-        super().__init__(id, 1, 'value')
+        super().__init__(id, 1, 'value', format)
         
     def calculate(self):
         try:
@@ -50,115 +57,124 @@ class Equation(Function):
             for var_name in var_names:
                 equation = equation.replace(var_name, str(get_value(packet, var_name)))
 
-            return {self._id: eval(equation)}
+            calculated = eval(equation)
+            return {self._id: self.format(calculated)}
         except:
-            return {self._id: equation}
+            return {self._id: ''}
 
 # Min function
 class Min(Function):
-    def __init__(self, id='min', batchlen=0, attribute='value'):
-        super().__init__(id, batchlen, attribute)
+    def __init__(self, id='min', batchlen=0, attribute='value', format=None):
+        super().__init__(id, batchlen, attribute, format)
         
     def calculate(self):
         try:
             super().calculate()
-            return {self._id: min(self._batchvalues)}
+            calculated = min(self._batchvalues)
+            return {self._id: self.format(calculated)}
         except:
             return {self._id: ''}
 
 
 # Max function
 class Max(Function):
-    def __init__(self, id='max', batchlen=0, attribute='value'):
-        super().__init__(id, batchlen, attribute)
+    def __init__(self, id='max', batchlen=0, attribute='value', format=None):
+        super().__init__(id, batchlen, attribute, format)
         
     def calculate(self):
         try:
             super().calculate()
-            return {self._id: max(self._batchvalues)}
+            calculated = max(self._batchvalues)
+            return {self._id: self.format(calculated)}
         except:
             return {self._id: ''}
 
 
 # Sum function
 class Sum(Function):
-    def __init__(self, id='sum', batchlen=0, attribute='value'):
-        super().__init__(id, batchlen, attribute)
+    def __init__(self, id='sum', batchlen=0, attribute='value', format=None):
+        super().__init__(id, batchlen, attribute, format)
         
     def calculate(self):
         try:
             super().calculate()
-            return {self._id: sum(self._batchvalues)}
+            calculated = sum(self._batchvalues)
+            return {self._id: self.format(calculated)}
         except:
             return {self._id: ''}
 
 
 # Count function
 class Count(Function):
-    def __init__(self, id='count', batchlen=0, attribute='value'):
-        super().__init__(id, batchlen, attribute)
+    def __init__(self, id='count', batchlen=0, attribute='value', format=None):
+        super().__init__(id, batchlen, attribute, format)
         
     def calculate(self):
         try:
             super().calculate()
-            return {self._id: len(self._batchvalues)}
+            calculated = len(self._batchvalues)
+            return {self._id: self.format(calculated)}
         except:
             return {self._id: ''}
 
 
 # Mean function
 class Mean(Function):
-    def __init__(self, id='mean', batchlen=0, attribute='value'):
-        super().__init__(id, batchlen, attribute)
+    def __init__(self, id='mean', batchlen=0, attribute='value', format=None):
+        super().__init__(id, batchlen, attribute, format)
         
     def calculate(self):
         try:
             super().calculate()
-            return {self._id: statistics.mean(self._batchvalues)}
+            calculated = statistics.mean(self._batchvalues)
+            return {self._id: self.format(calculated)}
         except:
             return {self._id: ''}
 
 # Median function
 class Median(Function):
-    def __init__(self, id='median', batchlen=0, attribute='value'):
-        super().__init__(id, batchlen, attribute)
+    def __init__(self, id='median', batchlen=0, attribute='value', format=None):
+        super().__init__(id, batchlen, attribute, format)
         
     def calculate(self):
         try:
             super().calculate()
-            return {self._id: statistics.median(self._batchvalues)}
+            calculated = statistics.median(self._batchvalues)
+            return {self._id: self.format(calculated)}
         except:
             return {self._id: ''}
 
 
 # EWMA function
 class EWMA(Function):
-    def __init__(self, id='ewma', batchlen=0, attribute='value'):
-        super().__init__(id, batchlen, attribute)
+    def __init__(self, id='ewma', batchlen=0, attribute='value', format=None):
+        super().__init__(id, batchlen, attribute, format)
         
     def calculate(self):
         try:
             i = 1
-            ewma = 0
+            calculated = 0
             super().calculate()
 
             for x in self._batchvalues[::-1]:
-                ewma += x / (2 ** i)
+                calculated += x / (2 ** i)
                 i += 1
-            return {self._id: ewma}
+
+            return {self._id: self.format(calculated)}
         except:
             return {self._id: ''}
 
 # StDev function
 class StDev(Function):
-    def __init__(self, id='stdev', batchlen=0, attribute='value'):
-        super().__init__(id, batchlen, attribute)
+    def __init__(self, id='stdev', batchlen=0, attribute='value', format=None):
+        super().__init__(id, batchlen, attribute, format)
         
     def calculate(self):
         super().calculate()
         if len(self._batchvalues) > 1:
             try:
-                return {self._id: statistics.pstdev(self._batchvalues)}
+                calculated = statistics.pstdev(self._batchvalues)
+                return {self._id: self.format(calculated)}
             except:
                 return {self._id: ''}
         else:
@@ -167,20 +183,23 @@ class StDev(Function):
 
 # Slope function
 class Slope(Function):
-    def __init__(self, id='slope', batchlen=0, attribute='value'):
-        super().__init__(id, batchlen, attribute)
+    def __init__(self, id='slope', batchlen=0, attribute='value', format=None):
+        super().__init__(id, batchlen, attribute, format)
 
     def calculate(self):
         super().calculate()
 
         if len(self._batchvalues) > 1 and self._count >= self._batchlen:
             try:
-                return {self._id: numpy.polyfit(range(1, self._batchlen + 1), self._batchvalues, 1)[0]}
+                calculated = numpy.polyfit(range(1, self._batchlen + 1), self._batchvalues, 1)[0]
+                return {self._id: self.format(calculated)}
             except:
                 return {self._id: ''}
         else:
             return {self._id: ''}
 
+
+# Auto ARIMA function
 class AutoArimaFunction(Function):
     def __init__(self, id='auto_arima', batchlen=0, attribute='value', periods=1, start_p=0, d=0, start_q=0, max_p=5, max_d=5, max_q=5, start_P=0, D=0, start_Q=0, max_P=5, max_D=5, max_Q=5, max_order=5, m=1, seasonal=True, stationary=False):
         super().__init__(id, batchlen, attribute)
