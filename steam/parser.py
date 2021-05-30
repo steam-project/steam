@@ -22,19 +22,20 @@ class Parser:
         parsed = {
             'id': self._id,
             'timestamp': self._timestamp,
-            'value': self._data,
+            #'value': self._data,
             'unit': self._unit
         }
 
         if len(self._columns) > 0:
             values = [ to_number(x) for x in self._data.split(self._separator) ]
             values = dict(zip(self._columns, values))
+            parsed.update(values)
 
-            for attr in ['id', 'timestamp', 'unit']:
-                if attr in values:
-                    parsed.update({attr: values.get(attr)})
+            # for attr in ['id', 'timestamp', 'unit']:
+            #     if attr in values:
+            #         parsed.update({attr: values.get(attr)})
 
-            parsed['value'] = values
+            # parsed['value'] = values
         else:
             parsed['value'] = to_number(self._data)
 
