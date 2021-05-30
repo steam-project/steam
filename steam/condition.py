@@ -1,9 +1,8 @@
 from steam.utils import *
 
 class Condition:
-    def __init__(self, columns=[]):
+    def __init__(self):
         self._packet = None
-        self._columns = columns
 
     def setPacket(self, packet):
         self._packet = packet
@@ -12,9 +11,31 @@ class Condition:
         return True
 
 
+class EquationCondition(Condition):
+    def __init__(self, equation):
+        super().__init__()
+        self._equation = equation
+
+    def evaluate(self):
+        try:
+            packet = self._packet
+            equation = self._equation
+            tokens = equation.replace('(', ' ').replace(')', ' ').split()
+            var_names = [ x for x in tokens if x in packet ]
+            var_names.extend([ x for x in tokens if '.' in x ])
+            for var_name in var_names:
+                equation = equation.replace(var_name, str(get_value(packet, var_name)))
+
+            evaluated = eval(equation)
+            return bool(evaluated)
+        except:
+            return False
+
+
 class MissingValueCondition(Condition):
-    def __init__(self, columns=[]):
-        super().__init__(columns)
+    def __init__(self, columns=['value']):
+        super().__init__()
+        self._columns = columns
 
     def evaluate(self):
         for col in self._columns:
@@ -26,7 +47,8 @@ class MissingValueCondition(Condition):
 
 class ThresholdCondition(Condition):
     def __init__(self, columns=['value'], lower=[], upper=[]):
-        super().__init__(columns)
+        super().__init__()
+        self._columns = columns
         self._lower = lower
         self._upper = upper
 
