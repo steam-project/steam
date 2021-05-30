@@ -8,12 +8,16 @@ from steam.endpoint import *
 class Device:
     def __init__(self, batchlen=0):
         self._batchlen = batchlen
+        self._input = None
         self._parser = None
         self._endpoints = []
         self._functions = []
         self._packets = []
         self._packet = {'id': 0, 'value': 0, 'unit': 'un', 'timestamp': 0}
         self._enrich = Enrich(self._packet, self._packets)
+
+    def setInput(self, input):
+        self._input = input
 
     def setParser(self, parser):
         self._parser = parser
@@ -42,7 +46,7 @@ class Device:
         self._packets.append(data)
 
     def readData(self):
-        raise NotImplementedError
+        return self._input.readData()
         
     def run(self):
         if self._parser is None:
@@ -51,6 +55,9 @@ class Device:
         if len(self._endpoints) == 0:
             self.addEndpoint(Endpoint())
 
+        if self._input is None:
+            return
+            
         while True:
             valid, line = self.readData()
             if not valid:
