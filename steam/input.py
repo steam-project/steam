@@ -18,5 +18,6 @@ class FileInput(Input):
             else:
                 line = self._fin.readline().replace('\r', '').replace('\n', '')
                 if len(line.strip()):
-                    if line[0] != '#':
+                    if line[0] not in '# ': # skip empty and comments
                         return True, line
+                        

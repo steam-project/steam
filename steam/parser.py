@@ -1,4 +1,4 @@
-import time
+from datetime import datetime
 
 from steam.utils import *
 
@@ -17,7 +17,8 @@ class Parser:
         
     def parse(self):
         self._id += 1
-        self._timestamp = int(time.time() * 1000000)
+        #self._timestamp = int(time.time() * 1000000)
+        self._timestamp = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
 
         parsed = {
             'id': self._id,

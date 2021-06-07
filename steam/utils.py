@@ -14,6 +14,8 @@ def get_value(packet, column):
     for col in column.split('.'):
         if hasattr(value, '__iter__'):
             value = value.get(col)
+            if str(value) == '':
+                value = None
         else:
             value = None
 

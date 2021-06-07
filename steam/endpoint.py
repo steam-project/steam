@@ -37,7 +37,7 @@ class HTTPEndpoint(Endpoint):
         super().__init__()
         self._url = url
         self._session = requests.Session()
-        
+
     def send(self):
         ret, out = self.formatData()
         if ret:

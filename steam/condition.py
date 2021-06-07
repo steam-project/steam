@@ -33,9 +33,13 @@ class EquationCondition(Condition):
 
 
 class MissingValueCondition(Condition):
-    def __init__(self, columns=['value']):
+    def __init__(self, columns):
         super().__init__()
-        self._columns = columns
+
+        if isinstance(columns, str):
+            self._columns = list(columns)
+        else:
+            self._columns = columns
 
     def evaluate(self):
         for col in self._columns:
@@ -46,11 +50,23 @@ class MissingValueCondition(Condition):
 
 
 class ThresholdCondition(Condition):
-    def __init__(self, columns=['value'], lower=[], upper=[]):
+    def __init__(self, columns, lower='', upper=''):
         super().__init__()
-        self._columns = columns
-        self._lower = lower
-        self._upper = upper
+
+        if isinstance(columns, list):
+            self._columns = columns
+        else:
+            self._columns = [columns]
+
+        if isinstance(lower, list):
+            self._lower = lower
+        else:
+            self._lower = [lower] * len(self._columns)
+
+        if isinstance(upper, list):
+            self._upper = upper
+        else:
+            self._upper = [upper] * len(self._columns)
 
     def evaluate(self):
         for i in range(len(self._columns)):
@@ -59,13 +75,21 @@ class ThresholdCondition(Condition):
             if value:
                 lower = self._lower[i] if i < len(self._lower) else None
                 if lower:
-                    if value < lower:
-                        return True
+                    if isinstance(lower, str):
+                        lower = get_value(self._packet, lower)
+
+                    if lower:
+                        if value < lower:
+                            return True
 
             if value:
                 upper = self._upper[i] if i < len(self._upper) else None
                 if upper:
-                    if value > upper:
-                        return True
+                    if isinstance(upper, str):
+                        upper = get_value(self._packet, upper)
+
+                    if upper:
+                        if value > upper:
+                            return True
 
         return False

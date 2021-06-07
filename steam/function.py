@@ -21,7 +21,7 @@ class Function:
 
     def format(self, value):
         if self._format:
-            return self._format.format(value)
+            return to_number(self._format.format(value))
         else:
             return value
 
@@ -51,9 +51,13 @@ class Equation(Function):
         try:
             packet = self._packets[-1]
             equation = self._equation
-            tokens = equation.replace('(', ' ').replace(')', ' ').split()
-            var_names = [ x for x in tokens if x in packet ]
-            var_names.extend([ x for x in tokens if '.' in x ])
+            
+            tokens = equation
+            for sep in '()[],':
+                tokens = tokens.replace(sep, ' ')
+            tokens = tokens.split()
+            
+            var_names = set([ x for x in tokens if x in packet ])
             for var_name in var_names:
                 equation = equation.replace(var_name, str(get_value(packet, var_name)))
 

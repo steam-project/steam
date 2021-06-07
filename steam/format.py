@@ -27,7 +27,7 @@ class MessageFormat(Format):
     def __init__(self, message):
         # Extract column names from message
         columns = re.findall('\{[^\{]+\}', message)
-        columns = [c.replace('{', '').replace('}', '') for c in columns]
+        columns = [c.replace('{', '').replace('}', '').split(':')[0] for c in columns]
         super().__init__(columns)
         self._message = message
         
