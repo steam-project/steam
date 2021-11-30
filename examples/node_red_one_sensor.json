@@ -1,0 +1,377 @@
+[
+    {
+        "id": "e013861a.4e5f18",
+        "type": "tab",
+        "label": "One Sensor",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "9baad2b5.90e63",
+        "type": "http in",
+        "z": "e013861a.4e5f18",
+        "name": "Sensor Values",
+        "url": "/datastream",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 220,
+        "wires": [
+            [
+                "b6682244.aec558",
+                "61e957d7.c6caa8",
+                "e116a5a4.7f8488"
+            ]
+        ]
+    },
+    {
+        "id": "b6682244.aec558",
+        "type": "http response",
+        "z": "e013861a.4e5f18",
+        "name": "OK",
+        "statusCode": "200",
+        "headers": {},
+        "x": 430,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "3e0b2457.15b844",
+        "type": "ui_chart",
+        "z": "e013861a.4e5f18",
+        "name": "Sensor Chart",
+        "group": "4b92d5f9.c913ac",
+        "order": 1,
+        "width": 10,
+        "height": 4,
+        "label": "Dew Point",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm:ss",
+        "interpolate": "bezier",
+        "nodata": "Awaiting Data",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": "52",
+        "removeOlderPoints": "150",
+        "removeOlderUnit": "604800",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "x": 670,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "61e957d7.c6caa8",
+        "type": "function",
+        "z": "e013861a.4e5f18",
+        "name": "",
+        "func": "var val = {\"topic\": \"Dew Point\"};\nvar avg = {\"topic\": \"Mean\"};\nvar min = {\"topic\": \"Lower\"};\nvar max = {\"topic\": \"Upper\"};\n\nvar raw = msg.payload = JSON.parse(msg.payload);\n\nval.payload = raw.value;\navg.payload = msg.payload.hasOwnProperty(\"mean\") ? raw.mean : null;\nmin.payload = msg.payload.hasOwnProperty(\"lower\") ? raw.lower : null;\nmax.payload = msg.payload.hasOwnProperty(\"upper\") ? raw.upper : null;\n\nval.timestamp = raw.timestamp;\navg.timestamp = raw.timestamp;\nmin.timestamp = raw.timestamp;\nmax.timestamp = raw.timestamp;\n\nreturn [val, min, max, avg];",
+        "outputs": 4,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 440,
+        "y": 260,
+        "wires": [
+            [
+                "3e0b2457.15b844"
+            ],
+            [
+                "3e0b2457.15b844"
+            ],
+            [
+                "3e0b2457.15b844"
+            ],
+            [
+                "3e0b2457.15b844"
+            ]
+        ]
+    },
+    {
+        "id": "2c85087b.89ae6",
+        "type": "ui_button",
+        "z": "e013861a.4e5f18",
+        "name": "",
+        "group": "4b92d5f9.c913ac",
+        "order": 4,
+        "width": 2,
+        "height": 1,
+        "passthru": false,
+        "label": "Clear Data",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "[]",
+        "payloadType": "json",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 450,
+        "y": 360,
+        "wires": [
+            [
+                "3e0b2457.15b844",
+                "bd4ae558.cf9ee8"
+            ]
+        ]
+    },
+    {
+        "id": "8dd6b78a.64cb78",
+        "type": "exec",
+        "z": "e013861a.4e5f18",
+        "command": "tail -n20 /home/marcio/Temp/message_buffer.txt | tac",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "oldrc": false,
+        "name": "Last 20 messages",
+        "x": 690,
+        "y": 580,
+        "wires": [
+            [
+                "4d0972ba.dc1504"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "f020d41a.fa023",
+        "type": "http in",
+        "z": "e013861a.4e5f18",
+        "name": "Sensor Message",
+        "url": "/msgstream",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 240,
+        "y": 560,
+        "wires": [
+            [
+                "7d46d2d3.24b304",
+                "5ca8c192.9c8328",
+                "b061a6f8.66fe7"
+            ]
+        ]
+    },
+    {
+        "id": "7d46d2d3.24b304",
+        "type": "http response",
+        "z": "e013861a.4e5f18",
+        "name": "OK",
+        "statusCode": "200",
+        "headers": {},
+        "x": 430,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "5ca8c192.9c8328",
+        "type": "file",
+        "z": "e013861a.4e5f18",
+        "name": "Append Log File",
+        "filename": "/home/marcio/Temp/message_buffer.txt",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "false",
+        "encoding": "none",
+        "x": 460,
+        "y": 580,
+        "wires": [
+            [
+                "8dd6b78a.64cb78"
+            ]
+        ]
+    },
+    {
+        "id": "4d0972ba.dc1504",
+        "type": "ui_text",
+        "z": "e013861a.4e5f18",
+        "group": "4b92d5f9.c913ac",
+        "order": 2,
+        "width": 4,
+        "height": 4,
+        "name": "Display",
+        "label": "<b>Warnings</b>",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "x": 880,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "bd4ae558.cf9ee8",
+        "type": "function",
+        "z": "e013861a.4e5f18",
+        "name": "Empty Message",
+        "func": "msg.payload = \"\"\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 680,
+        "y": 380,
+        "wires": [
+            [
+                "4d0972ba.dc1504",
+                "607bd652.370c7"
+            ]
+        ]
+    },
+    {
+        "id": "607bd652.370c7",
+        "type": "file",
+        "z": "e013861a.4e5f18",
+        "name": "Clear Log File",
+        "filename": "/home/marcio/Temp/message_buffer.txt",
+        "appendNewline": false,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 900,
+        "y": 340,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b061a6f8.66fe7",
+        "type": "debug",
+        "z": "e013861a.4e5f18",
+        "name": "Debug Log",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 450,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "df4ae133.614e68",
+        "type": "function",
+        "z": "e013861a.4e5f18",
+        "name": "",
+        "func": "msg.payload = []\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 440,
+        "y": 320,
+        "wires": [
+            [
+                "3e0b2457.15b844"
+            ]
+        ]
+    },
+    {
+        "id": "8210d47c.39d1a8",
+        "type": "http response",
+        "z": "e013861a.4e5f18",
+        "name": "OK",
+        "statusCode": "200",
+        "headers": {},
+        "x": 650,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "d8226aff.255d18",
+        "type": "http in",
+        "z": "e013861a.4e5f18",
+        "name": "Clear",
+        "url": "/clear",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 210,
+        "y": 380,
+        "wires": [
+            [
+                "bd4ae558.cf9ee8",
+                "df4ae133.614e68",
+                "8249599e.60f58"
+            ]
+        ]
+    },
+    {
+        "id": "8249599e.60f58",
+        "type": "template",
+        "z": "e013861a.4e5f18",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "OK",
+        "output": "str",
+        "x": 440,
+        "y": 420,
+        "wires": [
+            [
+                "8210d47c.39d1a8"
+            ]
+        ]
+    },
+    {
+        "id": "e116a5a4.7f8488",
+        "type": "debug",
+        "z": "e013861a.4e5f18",
+        "name": "Debug Log",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 450,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "4b92d5f9.c913ac",
+        "type": "ui_group",
+        "name": "Threshold UI",
+        "tab": "45bedab6.25e534",
+        "order": 2,
+        "disp": false,
+        "width": 16,
+        "collapse": false
+    },
+    {
+        "id": "45bedab6.25e534",
+        "type": "ui_tab",
+        "name": "Dew Point",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    }
+]
