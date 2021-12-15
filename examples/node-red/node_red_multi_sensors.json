@@ -1,0 +1,485 @@
+[
+    {
+        "id": "6c259dd5.72f0d4",
+        "type": "subflow",
+        "name": "Ring Buffer",
+        "info": "# Ring buffer\n## Last in First Out subflow\nThis flow receives a series of msg.payloads and builds a ring bifferwith a specific buffer size. The buffer size is configurabe through subflows enviroment variables.\n\n### Input\nThe `msg.payload`will be added to the ring buffer array, except if `msg.topic == list`\n\nIf `msg.topic == list` the complete buffer will be sent at the secont output.\n\n\n### Output 1\nAlways sends the original message\n\n### Output 2\nAlways return the complete buffer.\n\n### Status\nAlways shows the queue size.\n\n### Enviroment Variables\n`Buffer_Size` defines the size of the queue. If a new item arrives and the queue is full, the oldest item will be removed.",
+        "category": "",
+        "in": [
+            {
+                "x": 140,
+                "y": 40,
+                "wires": [
+                    {
+                        "id": "b4286eb1.847af"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 280,
+                "y": 40,
+                "wires": [
+                    {
+                        "id": "6c259dd5.72f0d4",
+                        "port": 0
+                    }
+                ]
+            },
+            {
+                "x": 800,
+                "y": 140,
+                "wires": [
+                    {
+                        "id": "6c6b3594.fac22c",
+                        "port": 0
+                    }
+                ]
+            }
+        ],
+        "env": [
+            {
+                "name": "Buffer_Size",
+                "type": "num",
+                "value": "5"
+            }
+        ],
+        "inputLabels": [
+            "payload"
+        ],
+        "outputLabels": [
+            "Original message",
+            "Buffer"
+        ],
+        "icon": "font-awesome/fa-circle-o-notch",
+        "status": {
+            "x": 1020,
+            "y": 100,
+            "wires": [
+                {
+                    "id": "36df5ea7.231082",
+                    "port": 0
+                }
+            ]
+        }
+    },
+    {
+        "id": "b4286eb1.847af",
+        "type": "switch",
+        "z": "6c259dd5.72f0d4",
+        "name": "Topic",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "list",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 310,
+        "y": 100,
+        "wires": [
+            [
+                "6c6b3594.fac22c"
+            ],
+            [
+                "afc05e2d.59f36"
+            ]
+        ]
+    },
+    {
+        "id": "afc05e2d.59f36",
+        "type": "function",
+        "z": "6c259dd5.72f0d4",
+        "name": "put",
+        "func": "var queue = flow.get(\"queue\")\n\n\nif (!Array.isArray(queue)){\n    queue = [];\n}else if ( queue.length >= env.get(\"Buffer_Size\") ){\n    queue.pop(1);\n}\n\nqueue.unshift(msg.payload);\n\nflow.set(\"queue\", queue);\nmsg.payload = queue;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 490,
+        "y": 140,
+        "wires": [
+            [
+                "6c6b3594.fac22c"
+            ]
+        ]
+    },
+    {
+        "id": "6c6b3594.fac22c",
+        "type": "change",
+        "z": "6c259dd5.72f0d4",
+        "name": "list",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "queue",
+                "tot": "flow"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 690,
+        "y": 100,
+        "wires": [
+            [
+                "36df5ea7.231082"
+            ]
+        ]
+    },
+    {
+        "id": "36df5ea7.231082",
+        "type": "change",
+        "z": "6c259dd5.72f0d4",
+        "name": "Count",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "$count(msg.payload)\t",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 890,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8ff983c8.f2e82",
+        "type": "tab",
+        "label": "Multi Sensors",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "7a7043e2.fc7fd4",
+        "type": "http in",
+        "z": "8ff983c8.f2e82",
+        "name": "Sensor Values",
+        "url": "/datastream_multi",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 270,
+        "y": 180,
+        "wires": [
+            [
+                "195b003a.23d0d8",
+                "99238278.bfb8e8"
+            ]
+        ]
+    },
+    {
+        "id": "195b003a.23d0d8",
+        "type": "http response",
+        "z": "8ff983c8.f2e82",
+        "name": "OK",
+        "statusCode": "200",
+        "headers": {},
+        "x": 470,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "cff1c087.9ec3e",
+        "type": "ui_chart",
+        "z": "8ff983c8.f2e82",
+        "name": "Sensor Chart",
+        "group": "8de4dbce.f929c",
+        "order": 1,
+        "width": 10,
+        "height": 4,
+        "label": "Dew Point - Multi Sensors",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm:ss",
+        "interpolate": "bezier",
+        "nodata": "Awaiting Data",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": "52",
+        "removeOlderPoints": "150",
+        "removeOlderUnit": "604800",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "x": 710,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "99238278.bfb8e8",
+        "type": "function",
+        "z": "8ff983c8.f2e82",
+        "name": "",
+        "func": "var s1 = {\"topic\": \"Sensor 1\"};\nvar s2 = {\"topic\": \"Sensor 2\"};\nvar s3 = {\"topic\": \"Sensor 3\"};\n\nvar raw = msg.payload = JSON.parse(msg.payload);\n\ns1.payload = raw.s1;\ns2.payload = raw.s2;\ns3.payload = raw.s3;\n\ns1.timestamp = raw.timestamp;\ns2.timestamp = raw.timestamp;\ns3.timestamp = raw.timestamp;\n\nreturn [s1, s2, s3];",
+        "outputs": 3,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 480,
+        "y": 220,
+        "wires": [
+            [
+                "cff1c087.9ec3e"
+            ],
+            [
+                "cff1c087.9ec3e"
+            ],
+            [
+                "cff1c087.9ec3e"
+            ]
+        ]
+    },
+    {
+        "id": "149c923e.df95ae",
+        "type": "ui_button",
+        "z": "8ff983c8.f2e82",
+        "name": "",
+        "group": "8de4dbce.f929c",
+        "order": 4,
+        "width": 2,
+        "height": 1,
+        "passthru": false,
+        "label": "Clear Data",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "[]",
+        "payloadType": "json",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 490,
+        "y": 320,
+        "wires": [
+            [
+                "cff1c087.9ec3e",
+                "4a932bdc.113664"
+            ]
+        ]
+    },
+    {
+        "id": "31fffbfd.d6f6e4",
+        "type": "http in",
+        "z": "8ff983c8.f2e82",
+        "name": "Sensor Message",
+        "url": "/msgstream_multi",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 280,
+        "y": 520,
+        "wires": [
+            [
+                "e03a2589.e38df8",
+                "1bd2b37b.dbc66d"
+            ]
+        ]
+    },
+    {
+        "id": "e03a2589.e38df8",
+        "type": "http response",
+        "z": "8ff983c8.f2e82",
+        "name": "OK",
+        "statusCode": "200",
+        "headers": {},
+        "x": 470,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "8b38370b.465878",
+        "type": "ui_text",
+        "z": "8ff983c8.f2e82",
+        "group": "8de4dbce.f929c",
+        "order": 2,
+        "width": 4,
+        "height": 4,
+        "name": "Display",
+        "label": "<b>Warnings</b>",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "x": 920,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "4a932bdc.113664",
+        "type": "function",
+        "z": "8ff983c8.f2e82",
+        "name": "Empty Message",
+        "func": "msg.payload = \"\"\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 720,
+        "y": 340,
+        "wires": [
+            [
+                "8b38370b.465878"
+            ]
+        ]
+    },
+    {
+        "id": "d1d26f8d.bbd25",
+        "type": "function",
+        "z": "8ff983c8.f2e82",
+        "name": "",
+        "func": "msg.payload = []\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 480,
+        "y": 280,
+        "wires": [
+            [
+                "cff1c087.9ec3e"
+            ]
+        ]
+    },
+    {
+        "id": "5edf9d86.7e353c",
+        "type": "http response",
+        "z": "8ff983c8.f2e82",
+        "name": "OK",
+        "statusCode": "200",
+        "headers": {},
+        "x": 690,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "c6817cdb.aa97a",
+        "type": "http in",
+        "z": "8ff983c8.f2e82",
+        "name": "Clear",
+        "url": "/clear_multi",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 250,
+        "y": 340,
+        "wires": [
+            [
+                "4a932bdc.113664",
+                "d1d26f8d.bbd25",
+                "27555a08.7ed61e"
+            ]
+        ]
+    },
+    {
+        "id": "27555a08.7ed61e",
+        "type": "template",
+        "z": "8ff983c8.f2e82",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "OK",
+        "output": "str",
+        "x": 480,
+        "y": 380,
+        "wires": [
+            [
+                "5edf9d86.7e353c"
+            ]
+        ]
+    },
+    {
+        "id": "1bd2b37b.dbc66d",
+        "type": "subflow:6c259dd5.72f0d4",
+        "z": "8ff983c8.f2e82",
+        "name": "",
+        "env": [
+            {
+                "name": "Buffer_Size",
+                "value": "10",
+                "type": "num"
+            }
+        ],
+        "x": 490,
+        "y": 540,
+        "wires": [
+            [],
+            [
+                "89d7f59a.f3fcb8"
+            ]
+        ]
+    },
+    {
+        "id": "89d7f59a.f3fcb8",
+        "type": "function",
+        "z": "8ff983c8.f2e82",
+        "name": "",
+        "func": "var join = msg.payload.join('\\n');\nmsg.payload = join;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 700,
+        "y": 540,
+        "wires": [
+            [
+                "8b38370b.465878"
+            ]
+        ]
+    },
+    {
+        "id": "8de4dbce.f929c",
+        "type": "ui_group",
+        "name": "Multi Sensors",
+        "tab": "a35214a9.719bb",
+        "order": 2,
+        "disp": false,
+        "width": "16",
+        "collapse": false
+    },
+    {
+        "id": "a35214a9.719bb",
+        "type": "ui_tab",
+        "name": "STEAM",
+        "icon": "dashboard",
+        "order": 3,
+        "disabled": false,
+        "hidden": false
+    }
+]
