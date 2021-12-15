@@ -1,0 +1,7 @@
+requests
+pmdarima
+statsmodels
+numpy
+waitress
+flask
+jsonify
